@@ -117,7 +117,19 @@ def main():
     ap.add_argument("--out", default="minha-lista.m3u")
     a = ap.parse_args()
 
-    vistos, canais = set(), []
+    vistos, canais, manuais = set(), [], set()
+    # Seus canais (iptv/meus-canais.m3u): entram sempre, sem filtros e sem teste de link.
+    meus = Path(__file__).resolve().parent.parent / "meus-canais.m3u"
+    if meus.exists():
+        for extinf, opts, url in parse(meus.read_text(encoding="utf-8", errors="replace")):
+            if url in vistos:
+                continue
+            vistos.add(url)
+            manuais.add(url)
+            if 'group-title="' not in extinf:
+                extinf = extinf.replace("#EXTINF:-1", '#EXTINF:-1 group-title="Meus canais"', 1)
+            g = re.search(r'group-title="([^"]*)"', extinf).group(1)
+            canais.append((g, nome_do(extinf).lower(), (extinf, opts, url)))
     for arquivo, grupo in FONTES:
         try:
             itens = parse(ler(a.src_dir, arquivo))
@@ -144,7 +156,7 @@ def main():
 
     if a.check:
         with ThreadPoolExecutor(max_workers=40) as ex:
-            ok = list(ex.map(lambda c: viva(c[2]), canais))
+            ok = list(ex.map(lambda c: c[2][2] in manuais or viva(c[2]), canais))
         vivos = [c for c, o in zip(canais, ok) if o]
         print(f"{len(vivos)} de {total} links responderam")
         # trava de segurança: se menos de 20% responder, é falha de rede, não de canais

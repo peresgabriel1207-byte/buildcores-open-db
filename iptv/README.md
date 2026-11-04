@@ -11,3 +11,16 @@ Lista M3U de canais brasileiros gratuitos, montada a partir das listas públicas
   são **excluídos** em `iptv/scripts/montar_lista.py`. Para ver esses canais, use os apps oficiais.
 - Teste local: `python iptv/scripts/montar_lista.py --check --out iptv/minha-lista.m3u`
 - Só canais de TV: canais de filme, série e anime em loop (Pluto TV e similares) ficam de fora.
+
+## Adicionar canais por conta própria
+
+Edite `iptv/meus-canais.m3u` (não edite `minha-lista.m3u`, que é reescrito todo dia). Cada canal são duas linhas:
+
+```
+#EXTINF:-1 group-title="Meus canais",Nome do canal
+https://site.com/caminho/do/stream.m3u8
+```
+
+- Esses canais entram sempre na lista, sem filtro e sem teste de link.
+- Se o canal exige referer ou user-agent, coloque antes da URL: `#EXTVLCOPT:http-referrer=https://site.com`.
+- Use só transmissões que o próprio canal disponibiliza de graça.
