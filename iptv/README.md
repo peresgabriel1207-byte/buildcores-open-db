@@ -10,3 +10,4 @@ Lista M3U de canais brasileiros gratuitos, montada a partir das listas públicas
 - Redes comerciais e TV paga (Globo, SBT, Record, ESPN etc.) e servidores de revenda com IP puro
   são **excluídos** em `iptv/scripts/montar_lista.py`. Para ver esses canais, use os apps oficiais.
 - Teste local: `python iptv/scripts/montar_lista.py --check --out iptv/minha-lista.m3u`
+- Só canais de TV: canais de filme, série e anime em loop (Pluto TV e similares) ficam de fora.

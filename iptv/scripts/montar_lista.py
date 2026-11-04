@@ -17,14 +17,25 @@ FONTES = [
     ("br_pluto.m3u", "Pluto TV"),
     ("br_samsung.m3u", "Samsung TV Plus"),
 ]
+# Pluto e Samsung são quase só canais de filme/série/anime em loop. Dessas duas
+# fontes entram apenas canais que casam com esta lista (notícias, esporte, música).
+FAST_MANTER = re.compile(
+    r"news|euronews|cnbc|canal uol|tv cultura|fifa|ufc|pfl|combat|racer|red bull|"
+    r"real ?madrid|barça|barca|esportes|stingray|tiktok radio|trace|veja",
+    re.I,
+)
+# Conteúdo sob demanda disfarçado de canal: fora, em qualquer fonte.
+SEM_FILMES = re.compile(
+    r"cine|filme|movie|s[eé]ries?\b|series|novela|netmovies|panteras|cl[aá]ssic|terror|horror|anime",
+    re.I,
+)
 # palavras-chave -> grupo (só para fontes "Brasil"); a primeira que casar vence
 CATEGORIAS = [
-    ("Notícias", ["news", "noticia", "notícia", "jornal", "cnn", "band news", "tv câmara", "tv camara", "tv senado", "agro", "canal rural"]),
+    ("Notícias", ["news", "noticia", "notícia", "jornal", "cnn", "cnbc", "uol", "tv câmara", "tv camara", "tv senado", "agro", "canal rural", "cultura"]),
     ("Infantil", ["kids", "infantil", "cartoon", "desenho", "baby", "turma", "gloob", "anime"]),
-    ("Esportes", ["sport", "esporte", "futebol", "fut ", "arena", "copa", "motor", "nba", "ufc", "fight"]),
-    ("Música", ["music", "música", "musica", "mtv", "trace", "hits", "radio", "rádio", "fm "]),
+    ("Esportes", ["sport", "esporte", "futebol", "fut ", "arena", "copa", "motor", "nba", "ufc", "pfl", "fifa", "combat", "racer", "red bull", "madrid", "barça", "fight"]),
+    ("Música", ["music", "música", "musica", "stingray", "trace", "hits", "radio", "rádio", "fm "]),
     ("Religioso", ["igreja", "gospel", "catól", "catol", "canção nova", "cancao nova", "rede vida", "evang", "deus", "fé", "fe tv", "aparecida"]),
-    ("Filmes e Séries", ["movie", "filme", "cinema", "cine ", "série", "serie", "drama", "novela", "terror", "horror"]),
 ]
 UA = "Mozilla/5.0 (compatible; minha-iptv-checker)"
 
@@ -73,8 +84,6 @@ def nome_do(extinf):
 
 
 def grupo_de(nome, padrao):
-    if padrao != "Brasil":
-        return padrao
     n = nome.lower()
     for g, palavras in CATEGORIAS:
         if any(p in n for p in palavras):
@@ -120,7 +129,9 @@ def main():
                 continue
             vistos.add(url)
             nome = nome_do(extinf)
-            if EXCLUIR.search(nome) or HOST_IP.match(url):
+            if EXCLUIR.search(nome) or SEM_FILMES.search(nome) or HOST_IP.match(url):
+                continue
+            if grupo != "Brasil" and not FAST_MANTER.search(nome):
                 continue
             g = grupo_de(nome, grupo)
             extinf = re.sub(r'\s+group-title="[^"]*"', "", extinf)
